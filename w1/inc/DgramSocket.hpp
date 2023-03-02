@@ -20,7 +20,7 @@ class DgramSenderSocket : public DgramSocket {
 
   [[nodiscard]] addrinfo GetReceiverAddrInfo() const;
 
-  ssize_t SendTo(const char* data, size_t size);
+  ssize_t Send(const char* data, size_t size);
 
  private:
   addrinfo receiver_addr_info_;
@@ -32,5 +32,5 @@ class DgramReceiverSocket : public DgramSocket {
   DgramReceiverSocket(const std::string& port);
   ~DgramReceiverSocket() override;
 
-  ssize_t RecvFrom(char* buffer, size_t max_size);
+  ssize_t Receive(char* buffer, size_t max_size);
 };
