@@ -1,93 +1,71 @@
 #include "socket_init.hpp"
 
-bool dgram_recv_socket_addr_filter(addrinfo* addr_info) {
-  if (addr_info->ai_family != AF_INET || addr_info->ai_socktype != SOCK_DGRAM ||
-      addr_info->ai_protocol != IPPROTO_UDP)
-    return false;
-  return true;
-}
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <netdb.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <cstring>
+#include <stdio.h>
 
-int create_dgram_sender_socket(const char* address, const char* port, addrinfo* recv_addr) {
-  assert(address != nullptr);
-  assert(port != nullptr);
-  assert(recv_addr != nullptr);
+#include "socket_init.hpp"
 
-  addrinfo hints = {};
-  memset(&hints, 0, sizeof(addrinfo));
-
-  hints.ai_family = AF_INET;
-  hints.ai_socktype = SOCK_DGRAM;
-
-  addrinfo* recv_addr_list = nullptr;
-  if (getaddrinfo(address, port, &hints, &recv_addr_list) != 0)
-    return 1;
-
-  return get_dgram_sender_socket(recv_addr_list, recv_addr);
-}
-
-int get_dgram_sender_socket(addrinfo* recv_addr_list, addrinfo* recv_addr) {
-  assert(recv_addr_list != nullptr);
-  assert(recv_addr != nullptr);
-
-  for (addrinfo* curr_addr = recv_addr_list; curr_addr != nullptr; curr_addr = curr_addr->ai_next) {
-    if (dgram_recv_socket_addr_filter(curr_addr))
+// Adaptation of linux man page: https://linux.die.net/man/3/getaddrinfo
+static int
+get_dgram_socket(addrinfo* addr, bool should_bind, addrinfo* res_addr) {
+  for (addrinfo* ptr = addr; ptr != nullptr; ptr = ptr->ai_next) {
+    if (ptr->ai_family != AF_INET || ptr->ai_socktype != SOCK_DGRAM ||
+        ptr->ai_protocol != IPPROTO_UDP)
       continue;
-
-    int sfd = socket(curr_addr->ai_family, curr_addr->ai_socktype, curr_addr->ai_protocol);
+    int sfd = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
     if (sfd == -1)
       continue;
 
     fcntl(sfd, F_SETFL, O_NONBLOCK);
 
-    int true_val = 1;
-    setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &true_val, sizeof(int));
+    int trueVal = 1;
+    setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &trueVal, sizeof(int));
 
-    *recv_addr = *curr_addr;
-    return sfd;
-  }
+    if (res_addr)
+      *res_addr = *ptr;
+    if (!should_bind)
+      return sfd;
 
-  return -1;
-}
-
-int create_dgram_receiver_socket(const char* port) {
-  assert(port != nullptr);
-
-  addrinfo hints = {};
-  memset(&hints, 0, sizeof(addrinfo));
-
-  hints.ai_family = AF_INET;
-  hints.ai_socktype = SOCK_DGRAM;
-  hints.ai_flags = AI_PASSIVE;
-
-  addrinfo *recv_addr_list = nullptr;
-  if (getaddrinfo(nullptr, port, &hints, &recv_addr_list) != 0)
-    return 1;
-
-  return get_dgram_receiver_socket(recv_addr_list);
-}
-
-int get_dgram_receiver_socket(addrinfo* recv_addr_list) {
-  assert(recv_addr_list != nullptr);
-
-  for (addrinfo* curr_addr = recv_addr_list; curr_addr != nullptr; curr_addr = curr_addr->ai_next)
-  {
-    if (dgram_recv_socket_addr_filter(curr_addr))
-      continue;
-
-    int sfd = socket(curr_addr->ai_family, curr_addr->ai_socktype, curr_addr->ai_protocol);
-    if (sfd == -1)
-      continue;
-
-    fcntl(sfd, F_SETFL, O_NONBLOCK);
-
-    int true_val = 1;
-    setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &true_val, sizeof(int));
-
-    if (bind(sfd, curr_addr->ai_addr, curr_addr->ai_addrlen) == 0)
+    if (bind(sfd, ptr->ai_addr, ptr->ai_addrlen) == 0)
       return sfd;
 
     close(sfd);
   }
-
   return -1;
+}
+
+int
+create_dgram_socket(const char* address, const char* port, addrinfo* res_addr) {
+  addrinfo hints;
+  memset(&hints, 0, sizeof(addrinfo));
+
+  bool isListener = !address;
+
+  hints.ai_family = AF_INET;
+  hints.ai_socktype = SOCK_DGRAM;
+  if (isListener)
+    hints.ai_flags = AI_PASSIVE;
+
+  addrinfo* result = nullptr;
+  if (getaddrinfo(address, port, &hints, &result) != 0)
+    return 1;
+
+  int sfd = get_dgram_socket(result, isListener, res_addr);
+
+  //freeaddrinfo(result);
+  return sfd;
+}
+
+int create_dgram_sender_socket(const char* address, const char* port, addrinfo* res_addr) {
+  return create_dgram_socket(address, port, res_addr);
+}
+
+int create_dgram_receiver_socket(const char* port) {
+  return create_dgram_socket(nullptr, port, nullptr);
 }

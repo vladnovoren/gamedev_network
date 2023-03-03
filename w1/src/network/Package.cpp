@@ -36,11 +36,11 @@ int Package::Append(const char* add_data, const size_t add_size) {
 std::unique_ptr<Package::BaseData> Package::ExtractData() {
   switch (mem_sample_.type) {
     case PackageType::REGISTRY:
-      return std::unique_ptr<BaseData>((BaseData*)ParseAsRegistryPackage());
+      return std::unique_ptr<BaseData>((BaseData*) ParseAsRegistry());
     case PackageType::KEEP_ALIVE:
-      return std::unique_ptr<BaseData>((BaseData*)ParseAsKeepAlivePackage());
+      return std::unique_ptr<BaseData>((BaseData*) ParseAsKeepAlive());
     case PackageType::MSG:
-      return std::unique_ptr<BaseData>((BaseData*)ParseAsMsgPackage());
+      return std::unique_ptr<BaseData>((BaseData*) ParseAsMsg());
     case PackageType::UNDEFINED:
       std::cout << "package type undefined\n";
       return nullptr;
@@ -59,20 +59,20 @@ void Package::BaseData::Visitor::Visit(KeepAliveData& package_data) {
 void Package::BaseData::Visitor::Visit(MsgData& package_data) {
 }
 
-Package::RegistryData* Package::ParseAsRegistryPackage() {
+Package::RegistryData* Package::ParseAsRegistry() {
   return new RegistryData(std::string(mem_sample_.data));
 }
 
-Package::KeepAliveData* Package::ParseAsKeepAlivePackage() {
+Package::KeepAliveData* Package::ParseAsKeepAlive() {
   return new KeepAliveData();
 }
 
-Package::MsgData* Package::ParseAsMsgPackage() {
+Package::MsgData* Package::ParseAsMsg() {
   return new MsgData(std::string(mem_sample_.data));
 }
 
-Package::RegistryData::RegistryData(const std::string& username) :
-  username_(username) {
+Package::RegistryData::RegistryData(std::string username) :
+  username_(std::move(username)) {
 }
 
 const std::string& Package::RegistryData::GetUsername() const {

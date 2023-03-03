@@ -16,19 +16,28 @@ enum class PackageType {
 class Package {
  public:
   class BaseData;
+
   class RegistryData;
+
   class KeepAliveData;
+
   class MsgData;
+
  public:
   Package() = default;
+
   explicit Package(PackageType type);
+
   Package(const char* in_mem, size_t size);
 
   [[nodiscard]] void* Mem();
+
   [[nodiscard]] const void* Mem() const;
+
   [[nodiscard]] size_t MemSize() const;
 
   int Append(const char* add_data, size_t add_size);
+
   std::unique_ptr<BaseData> ExtractData();
 
  public:
@@ -42,33 +51,40 @@ class Package {
       virtual ~Visitor() = 0;
 
       virtual void Visit(RegistryData& package_data);
+
       virtual void Visit(KeepAliveData& package_data);
+
       virtual void Visit(MsgData& package_data);
     };
+
    public:
     virtual ~BaseData() = default;
 
     virtual Package MakePackage();
+
     virtual void Accept(Visitor& visitor);
   };
 
   class RegistryData : public BaseData {
    public:
-    explicit RegistryData(const std::string& username);
+    explicit RegistryData(std::string username);
+
     ~RegistryData() override = default;
 
     [[nodiscard]] const std::string& GetUsername() const;
 
     Package MakePackage() override;
+
     void Accept(Visitor& visitor) override;
 
    private:
-    const std::string& username_;
+    std::string username_;
   };
 
   class KeepAliveData : public BaseData {
    public:
     Package MakePackage() override;
+
     ~KeepAliveData() override = default;
 
     void Accept(Visitor& visitor) override;
@@ -77,11 +93,13 @@ class Package {
   class MsgData : public BaseData {
    public:
     explicit MsgData(std::string msg);
+
     ~MsgData() override = default;
 
     [[nodiscard]] const std::string& GetMsg() const;
 
     Package MakePackage() override;
+
     void Accept(Visitor& visitor) override;
 
    public:
@@ -91,9 +109,11 @@ class Package {
   };
 
  private:
-  RegistryData* ParseAsRegistryPackage();
-  KeepAliveData* ParseAsKeepAlivePackage();
-  MsgData* ParseAsMsgPackage();
+  RegistryData* ParseAsRegistry();
+
+  KeepAliveData* ParseAsKeepAlive();
+
+  MsgData* ParseAsMsg();
 
  private:
   struct MemSample {

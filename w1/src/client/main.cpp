@@ -1,14 +1,8 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <netdb.h>
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-#include "socket_init.hpp"
+#include "Client.hpp"
 
-int main(int argc, const char **argv)
-{
+int main(int argc, const char** argv) {
+  Client client("localhost", "2023", "2024");
+  client.Run();
 //  const char *port = "2022";
 //
 //  addrinfo resAddrInfo;

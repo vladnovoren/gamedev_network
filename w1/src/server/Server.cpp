@@ -1,4 +1,3 @@
-#include "socket_init.hpp"
 #include "Server.hpp"
 
 Server::Server(const std::string& address, const std::string& port_to_server,
@@ -11,7 +10,6 @@ void Server::Run() {
   while (true) {
     auto received_package = receiver_socket_.Receive();
     if (received_package.has_value()) {
-      printf("haha\n");
       auto package_data_p = received_package.value().ExtractData();
       package_data_p->Accept(incoming_package_processor_);
     }
@@ -24,8 +22,9 @@ Server::IncomingPackageProcessor::IncomingPackageProcessor(Server& server) :
 
 void
 Server::IncomingPackageProcessor::Visit(Package::RegistryData& registry_data) {
+  std::cout << "new user: \"" + registry_data.GetUsername() + "\"\n";
   server_.sender_socket_.Send(Package::MsgData(
-    "Welcome to our server, " + registry_data.GetUsername() +
+    "Welcome to our hashing server, " + registry_data.GetUsername() +
     "!").MakePackage());
 }
 

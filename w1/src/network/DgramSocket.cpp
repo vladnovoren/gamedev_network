@@ -16,7 +16,6 @@ ssize_t DgramSenderSocket::Send(const Package& package) {
 }
 
 DgramReceiverSocket::DgramReceiverSocket(const std::string& port) {
-  std::cout << port << '\n';
   fd_ = create_dgram_receiver_socket(port.c_str());
 }
 
@@ -44,8 +43,6 @@ std::optional<Package> DgramReceiverSocket::Receive() {
       std::cout << "nothing\n";
       return {};
     }
-    std::cout << "something\n";
-    printf("%s\n", (char*)package.Mem());
     return package;
   }
 

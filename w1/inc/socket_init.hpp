@@ -9,12 +9,13 @@
 #include <cstring>
 #include <cassert>
 
-bool dgram_recv_socket_addr_filter(addrinfo* addr_info);
+static int
+get_dgram_socket(addrinfo* addr, bool should_bind, addrinfo* res_addr);
 
-int create_dgram_sender_socket(const char* address, const char* port, addrinfo* recv_addr);
+int
+create_dgram_socket(const char* address, const char* port, addrinfo* res_addr);
 
-int get_dgram_sender_socket(addrinfo* recv_addr_list, addrinfo* recv_addr);
+int create_dgram_sender_socket(const char* address, const char* port,
+                               addrinfo* res_addr);
 
 int create_dgram_receiver_socket(const char* port);
-
-int get_dgram_receiver_socket(addrinfo* recv_addr_list);
