@@ -10,17 +10,17 @@ class Server {
   void Run();
 
  private:
-  class IncomingPackageProcessor : public Package::BaseData::Visitor {
+  class IncomingPacketProcessor : public Packet::BaseData::Visitor {
    public:
-    explicit IncomingPackageProcessor(Server& server);
+    explicit IncomingPacketProcessor(Server& server);
 
-    ~IncomingPackageProcessor() override = default;
+    ~IncomingPacketProcessor() override = default;
 
-    void Visit(Package::RegistryData& registry_data) override;
+    void Visit(Packet::RegistryData& registry_data) override;
 
-    void Visit(Package::KeepAliveData& keep_alive_data) override;
+    void Visit(Packet::KeepAliveData& keep_alive_data) override;
 
-    void Visit(Package::MsgData& msg_data) override;
+    void Visit(Packet::MsgData& msg_data) override;
 
    private:
     Server& server_;
@@ -30,5 +30,5 @@ class Server {
   DgramSenderSocket sender_socket_;
   DgramReceiverSocket receiver_socket_;
 
-  IncomingPackageProcessor incoming_package_processor_;
+  IncomingPacketProcessor incoming_packet_processor_;
 };

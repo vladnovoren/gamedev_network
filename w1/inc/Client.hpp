@@ -12,13 +12,13 @@ class Client {
 
   void Run();
  private:
-  class IncomingPackageProcessor : public Package::BaseData::Visitor {
+  class IncomingPacketProcessor : public Packet::BaseData::Visitor {
    public:
-    explicit IncomingPackageProcessor(Client& client);
+    explicit IncomingPacketProcessor(Client& client);
 
-    ~IncomingPackageProcessor() override = default;
+    ~IncomingPacketProcessor() override = default;
 
-    void Visit(Package::MsgData& msg_data) override;
+    void Visit(Packet::MsgData& msg_data) override;
 
    private:
     Client& client_;
@@ -37,5 +37,5 @@ class Client {
   DgramSenderSocket sender_socket_;
   DgramReceiverSocket receiver_socket_;
 
-  IncomingPackageProcessor incoming_package_procesoor_;
+  IncomingPacketProcessor incoming_packet_procesoor_;
 };

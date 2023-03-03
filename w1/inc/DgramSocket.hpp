@@ -6,7 +6,7 @@
 #include <netdb.h>
 #include <thread>
 #include <chrono>
-#include "Package.hpp"
+#include "Packet.hpp"
 #include "socket_init.hpp"
 
 using namespace std::chrono_literals;
@@ -27,7 +27,7 @@ class DgramSenderSocket : public DgramSocket {
 
   [[nodiscard]] addrinfo GetReceiverAddrInfo() const;
 
-  ssize_t Send(const Package& package);
+  ssize_t Send(const Packet& packet);
 
  private:
   addrinfo receiver_addr_info_ = {};
@@ -39,5 +39,5 @@ class DgramReceiverSocket : public DgramSocket {
 
   ~DgramReceiverSocket() override;
 
-  std::optional<Package> Receive();
+  std::optional<Packet> Receive();
 };

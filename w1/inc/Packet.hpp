@@ -6,14 +6,14 @@
 #include <memory>
 #include <iostream>
 
-enum class PackageType {
+enum class PacketType {
   UNDEFINED,
   REGISTRY,
   KEEP_ALIVE,
   MSG
 };
 
-class Package {
+class Packet {
  public:
   class BaseData;
 
@@ -24,11 +24,11 @@ class Package {
   class MsgData;
 
  public:
-  Package() = default;
+  Packet() = default;
 
-  explicit Package(PackageType type);
+  explicit Packet(PacketType type);
 
-  Package(const char* in_mem, size_t size);
+  Packet(const char* in_mem, size_t size);
 
   [[nodiscard]] void* Mem();
 
@@ -50,17 +50,17 @@ class Package {
      public:
       virtual ~Visitor() = 0;
 
-      virtual void Visit(RegistryData& package_data);
+      virtual void Visit(RegistryData& packet_data);
 
-      virtual void Visit(KeepAliveData& package_data);
+      virtual void Visit(KeepAliveData& packet_data);
 
-      virtual void Visit(MsgData& package_data);
+      virtual void Visit(MsgData& packet_data);
     };
 
    public:
     virtual ~BaseData() = default;
 
-    virtual Package MakePackage();
+    virtual Packet MakePacket();
 
     virtual void Accept(Visitor& visitor);
   };
@@ -73,7 +73,7 @@ class Package {
 
     [[nodiscard]] const std::string& GetUsername() const;
 
-    Package MakePackage() override;
+    Packet MakePacket() override;
 
     void Accept(Visitor& visitor) override;
 
@@ -83,7 +83,7 @@ class Package {
 
   class KeepAliveData : public BaseData {
    public:
-    Package MakePackage() override;
+    Packet MakePacket() override;
 
     ~KeepAliveData() override = default;
 
@@ -98,12 +98,12 @@ class Package {
 
     [[nodiscard]] const std::string& GetMsg() const;
 
-    Package MakePackage() override;
+    Packet MakePacket() override;
 
     void Accept(Visitor& visitor) override;
 
    public:
-    static constexpr size_t MAX_MSG_LEN = Package::MAX_DATA_SIZE;
+    static constexpr size_t MAX_MSG_LEN = Packet::MAX_DATA_SIZE;
    private:
     std::string msg_;
   };
@@ -117,7 +117,7 @@ class Package {
 
  private:
   struct MemSample {
-    PackageType type = PackageType::UNDEFINED;
+    PacketType type = PacketType::UNDEFINED;
     char data[MAX_DATA_SIZE + 1] = {};
   };
  public:
