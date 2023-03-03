@@ -13,27 +13,87 @@ enum class PackageType {
   MSG
 };
 
-class BasePackageData;
-class RegistryPackageData;
-class KeepAlivePackageData;
-class MsgPackageData;
-
 class Package {
+ public:
+  class BaseData;
+  class RegistryData;
+  class KeepAliveData;
+  class MsgData;
  public:
   Package() = default;
   explicit Package(PackageType type);
   Package(const char* in_mem, size_t size);
 
+  [[nodiscard]] void* Mem();
+  [[nodiscard]] const void* Mem() const;
+  [[nodiscard]] size_t MemSize() const;
+
   int Append(const char* add_data, size_t add_size);
-  std::unique_ptr<BasePackageData> ExtractData();
+  std::unique_ptr<BaseData> ExtractData();
 
  public:
   static constexpr size_t MAX_DATA_SIZE = 1000;
 
+ public:
+  class BaseData {
+   public:
+    class Visitor {
+     public:
+      virtual ~Visitor() = 0;
+
+      virtual void Visit(RegistryData& package_data);
+      virtual void Visit(KeepAliveData& package_data);
+      virtual void Visit(MsgData& package_data);
+    };
+   public:
+    virtual ~BaseData() = default;
+
+    virtual Package MakePackage();
+    virtual void Accept(Visitor& visitor);
+  };
+
+  class RegistryData : public BaseData {
+   public:
+    explicit RegistryData(const std::string& username);
+    ~RegistryData() override = default;
+
+    [[nodiscard]] const std::string& GetUsername() const;
+
+    Package MakePackage() override;
+    void Accept(Visitor& visitor) override;
+
+   private:
+    const std::string& username_;
+  };
+
+  class KeepAliveData : public BaseData {
+   public:
+    Package MakePackage() override;
+    ~KeepAliveData() override = default;
+
+    void Accept(Visitor& visitor) override;
+  };
+
+  class MsgData : public BaseData {
+   public:
+    explicit MsgData(std::string msg);
+    ~MsgData() override = default;
+
+    [[nodiscard]] const std::string& GetMsg() const;
+
+    Package MakePackage() override;
+    void Accept(Visitor& visitor) override;
+
+   public:
+    static constexpr size_t MAX_MSG_LEN = Package::MAX_DATA_SIZE;
+   private:
+    std::string msg_;
+  };
+
  private:
-  RegistryPackageData* ParseAsRegistryPackage();
-  KeepAlivePackageData* ParseAsKeepAlivePackage();
-  MsgPackageData* ParseAsMsgPackage();
+  RegistryData* ParseAsRegistryPackage();
+  KeepAliveData* ParseAsKeepAlivePackage();
+  MsgData* ParseAsMsgPackage();
 
  private:
   struct MemSample {
@@ -46,42 +106,4 @@ class Package {
  private:
   MemSample mem_sample_ = {};
   size_t data_size_ = 0;
-};
-
-class BasePackageData {
- public:
-  virtual ~BasePackageData() = 0;
-
-  virtual Package MakePackage() = 0;
-};
-
-class RegistryPackageData : public BasePackageData {
- public:
-  explicit RegistryPackageData(const std::string& username);
-  ~RegistryPackageData() override = default;
-
-  [[nodiscard]] const std::string& GetUsername() const;
-
-  Package MakePackage() override;
-
- private:
-  const std::string& username_;
-};
-
-class KeepAlivePackageData : public BasePackageData {
- public:
-  Package MakePackage() override;
-  ~KeepAlivePackageData() override = default;
-};
-
-class MsgPackageData : public BasePackageData {
- public:
-  explicit MsgPackageData(std::string msg);
-  ~MsgPackageData() override = default;
-
-  Package MakePackage() override;
- public:
-  static constexpr size_t MAX_MSG_LEN = Package::MAX_DATA_SIZE;
- private:
-  std::string msg_;
 };

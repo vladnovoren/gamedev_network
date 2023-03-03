@@ -14,7 +14,9 @@ add_executable(server
 
 add_library(network STATIC
         src/network/socket_init.cpp
-        src/network/DgramSocket.cpp)
+        src/network/DgramSocket.cpp
+        src/network/Package.cpp
+)
 
 target_include_directories(client PUBLIC inc)
 target_include_directories(server PUBLIC inc)

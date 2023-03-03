@@ -1,8 +1,10 @@
 #pragma once
 
 #include <string>
+#include <optional>
 #include <sys/socket.h>
 #include <netdb.h>
+#include "Package.hpp"
 #include "socket_init.hpp"
 
 class DgramSocket {
@@ -20,17 +22,17 @@ class DgramSenderSocket : public DgramSocket {
 
   [[nodiscard]] addrinfo GetReceiverAddrInfo() const;
 
-  ssize_t Send(const char* data, size_t size);
+  ssize_t Send(const Package& package);
 
  private:
-  addrinfo receiver_addr_info_;
+  addrinfo receiver_addr_info_ = {};
   bool connected_ = false;
 };
 
 class DgramReceiverSocket : public DgramSocket {
  public:
-  DgramReceiverSocket(const std::string& port);
+  explicit DgramReceiverSocket(const std::string& port);
   ~DgramReceiverSocket() override;
 
-  ssize_t Receive(char* buffer, size_t max_size);
+  std::optional<Package> Receive();
 };
