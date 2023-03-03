@@ -11,6 +11,7 @@ void Server::Run() {
   while (true) {
     auto received_package = receiver_socket_.Receive();
     if (received_package.has_value()) {
+      printf("haha\n");
       auto package_data_p = received_package.value().ExtractData();
       package_data_p->Accept(incoming_package_processor_);
     }
