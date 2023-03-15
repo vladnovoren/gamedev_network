@@ -1,6 +1,6 @@
-#include <enet/enet.h>
-#include <iostream>
+#include "LobbyServer.hpp"
 
+/*
 int main(int argc, const char **argv)
 {
   if (enet_initialize() != 0)
@@ -46,4 +46,13 @@ int main(int argc, const char **argv)
   atexit(enet_deinitialize);
   return 0;
 }
+ */
 
+LobbyServer::IncomingPacketProcessor::IncomingPacketProcessor(
+  LobbyServer& server) : server_(server) {
+}
+
+void LobbyServer::IncomingPacketProcessor::Visit(
+  Packet::RegistryData& registry_data) {
+
+}
