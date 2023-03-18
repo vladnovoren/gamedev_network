@@ -14,7 +14,8 @@ enum class PacketType {
   MSG,
   GAME_NOT_STARTED,
   GAME_STARTED,
-  GAME_SERVER_ADDRESS
+  GAME_SERVER_ADDRESS,
+  START_GAME
 };
 
 class Packet {
@@ -30,6 +31,8 @@ class Packet {
   class GameStartedData;
 
   class GameServerAddressData;
+
+  class StartGameData;
 
  public:
   Packet() = default;
@@ -61,6 +64,8 @@ class Packet {
   [[nodiscard]] GameStartedData* ParseAsGameStarted() const;
 
   [[nodiscard]] GameServerAddressData* ParseAsGameServerAddressData() const;
+
+  [[nodiscard]] StartGameData* ParseAsStartGameData() const;
 
  private:
   struct MemSample {

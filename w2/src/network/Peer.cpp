@@ -15,3 +15,14 @@ int Peer::Send(const Packet& packet) {
   }
   return 0;
 }
+
+int Peer::GetHost() const {
+  assert(enet_peer_ != nullptr);
+  return (int) enet_peer_->address.host;
+}
+
+int Peer::GetPort() const {
+  assert(enet_peer_ != nullptr);
+  return enet_peer_->address.port;
+}
+

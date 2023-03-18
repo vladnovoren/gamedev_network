@@ -9,6 +9,10 @@ class Peer {
  public:
   int Send(const Packet& packet);
 
+  [[nodiscard]] int GetHost() const;
+
+  [[nodiscard]] int GetPort() const;
+
  private:
   explicit Peer(ENetPeer* enet_peer);
 

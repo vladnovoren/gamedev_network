@@ -6,7 +6,7 @@ template<typename BaseT>
 class TypeID {
  public:
   template <typename T>
-  static int GetId() {
+  static int GetID() {
     static_assert(std::is_base_of_v<BaseT, T>);
     static bool is_registered = false;
     static int id = 0;

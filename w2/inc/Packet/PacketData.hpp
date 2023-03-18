@@ -1,30 +1,18 @@
 #pragma once
 
 #include "Packet.hpp"
+#include "Tools/TypeID.hpp"
 
 class Packet::BaseData {
- public:
-  class Visitor {
-   public:
-    virtual ~Visitor() = 0;
-
-    virtual void Visit(RegistryData& packet_data);
-
-    virtual void Visit(MsgData& packet_data);
-
-    virtual void Visit(GameNotStartedData& packet_data);
-
-    virtual void Visit(GameStartedData& packet_data);
-
-    virtual void Visit(GameServerAddressData& packet_data);
-  };
-
  public:
   virtual ~BaseData() = default;
 
   virtual Packet MakePacket();
 
-  virtual void Accept(Visitor& visitor);
+  [[nodiscard]] virtual int GetID() const;
+
+ protected:
+  using BaseT = BaseData;
 };
 
 class Packet::RegistryData : public Packet::BaseData {
@@ -37,7 +25,7 @@ class Packet::RegistryData : public Packet::BaseData {
 
   Packet MakePacket() override;
 
-  void Accept(Visitor& visitor) override;
+  [[nodiscard]] int GetID() const override;
 
  private:
   std::string username_;
@@ -45,34 +33,34 @@ class Packet::RegistryData : public Packet::BaseData {
 
 class Packet::MsgData : public Packet::BaseData {
  public:
-   explicit MsgData(std::string msg);
+  explicit MsgData(std::string msg);
 
-   ~MsgData() override = default;
+  ~MsgData() override = default;
 
-   [[nodiscard]] const std::string& GetMsg() const;
+  [[nodiscard]] const std::string& GetMsg() const;
 
-   Packet MakePacket() override;
+  Packet MakePacket() override;
 
-   void Accept(Visitor& visitor) override;
+  [[nodiscard]] int GetID() const override;
 
-  public:
-   static constexpr size_t MAX_MSG_LEN = Packet::MAX_DATA_SIZE;
-  private:
-   std::string msg_;
- };
+ public:
+  static constexpr size_t MAX_MSG_LEN = Packet::MAX_DATA_SIZE;
+ private:
+  std::string msg_;
+};
 
 class Packet::GameNotStartedData : public Packet::BaseData {
  public:
   Packet MakePacket() override;
 
-  void Accept(Visitor& visitor) override;
+  [[nodiscard]] int GetID() const override;
 };
 
 class Packet::GameStartedData : public Packet::BaseData {
  public:
   Packet MakePacket() override;
 
-  void Accept(Visitor& visitor) override;
+  [[nodiscard]] int GetID() const override;
 };
 
 class Packet::GameServerAddressData : public Packet::BaseData {
@@ -81,8 +69,15 @@ class Packet::GameServerAddressData : public Packet::BaseData {
 
   Packet MakePacket() override;
 
-  void Accept(Visitor& visitor) override;
+  [[nodiscard]] int GetID() const override;
 
   int host;
   int port;
+};
+
+class Packet::StartGameData : public Packet::BaseData {
+ public:
+  Packet MakePacket() override;
+
+  [[nodiscard]] int GetID() const override;
 };

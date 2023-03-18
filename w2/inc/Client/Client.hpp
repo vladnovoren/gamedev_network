@@ -5,7 +5,8 @@
 #include "Host/Host.hpp"
 #include "Host/BaseEventHandler.hpp"
 #include "Packet/PacketData.hpp"
-#include "LobbyStartGameEventHandler.hpp"
+#include "Tools/AutoArray.hpp"
+#include <functional>
 
 class Client {
  public:
@@ -16,44 +17,63 @@ class Client {
   int Run();
 
  private:
-  std::optional<Peer> ConnectToLobbyServer();
-  std::optional<Peer> ConnectToGameServer();
-
-  void LobbyServerProcessor(Peer& lobby_server_peer);
-
-  void LobbyRegistry(Peer& lobby_server_peer);
-  void LobbyStartGame();
-
-  bool LobbyStartGameLoopCriteria();
-
-  void Queries();
-
- private:
-  class LobbyStartGameEventHandler : public Host::BaseEventHandler {
-   public:
-    LobbyStartGameEventHandler();
-
-    void Handle(const Host::ReceiveEvent& event) override;
-
-    void Handle(const Host::)
-
-    class IncomingPacketReceiver : public Packet::BaseData::Visitor {
-     public:
-      void Visit(Packet::GameNotStartedData& data) override;
-
-      void Visit(Packet::GameStartedData& data) override;
-
-      void Visit(Packet::GameServerAddressData& data) override;
-    };
-
-   private:
-    IncomingPacketReceiver packet_receiver_;
+  enum class State {
+    GAME_NOT_STARTED,
+    GAME_STARTED,
+    CONNECTED_TO_GAME_SERVER
   };
 
+  State state_ = State::GAME_NOT_STARTED;
+
  private:
-  LobbyStartGameEventHandler lobby_start_game_event_handler_;
+  std::optional<Peer> ConnectToLobbyServer();
+
+  int LobbyServerProcessor();
+
+  int LobbyRegistry();
+
+  int LobbyStartGameStage();
+
+  int LobbyWaitForStart();
+
+  int LobbyStartGame();
+
+ private:
+  using HandlerType = TypeID<Host::BaseEvent>;
+  using EventHandlerT = std::function<void(Client, const Host::BaseEvent&)>;
+
+  void InitEventHandlers();
+
+  int NoneEventHandler(const Host::BaseEvent&);
+
+  int LobbyConnectEventHandler(const Host::BaseEvent& raw_event);
+
+  int LobbyDisconnectEventHandler(const Host::BaseEvent& raw_event);
+
+  int LobbyReceiveEventHandler(const Host::BaseEvent& raw_event);
+
+ private:
+  using PacketProcessorT = std::function<void(Client, const Packet::BaseData&)>;
+
+  void InitPacketProcessors();
+
+  int GameNotStartedPacketProcessor(const Packet::BaseData&);
+
+  int GameStartedPacketProcessor(const Packet::BaseData&);
+
+  int
+  GameServerAddressPacketProcessor(const Packet::BaseData& raw_data);
+
+ private:
   std::string username_;
 
   Host host_;
-};
 
+  Peer lobby_peer_;
+  Peer game_server_peer_;
+
+ private:
+  AutoArray<EventHandlerT> start_game_stage_handlers_;
+
+  AutoArray<PacketProcessorT> start_game_stage_processors_;
+};

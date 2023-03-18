@@ -1,23 +1,11 @@
 #include "Packet/PacketData.hpp"
 
-Packet::BaseData::Visitor::~Visitor() = default;
-
-void Packet::BaseData::Visitor::Visit(RegistryData&) {}
-
-void Packet::BaseData::Visitor::Visit(MsgData&) {}
-
-void Packet::BaseData::Visitor::Visit(GameNotStartedData&) {}
-
-void Packet::BaseData::Visitor::Visit(GameStartedData&) {}
-
-void Packet::BaseData::Visitor::Visit(GameServerAddressData&) {}
-
-
 Packet Packet::BaseData::MakePacket() {
   return {};
 }
 
-void Packet::BaseData::Accept(Visitor&) {
+int Packet::BaseData::GetID() const {
+  return TypeID<BaseT>::GetID<BaseData>();
 }
 
 Packet::RegistryData::RegistryData(std::string username) :
@@ -34,8 +22,8 @@ Packet Packet::RegistryData::MakePacket() {
   return raw_packet;
 }
 
-void Packet::RegistryData::Accept(Visitor& visitor) {
-  visitor.Visit(*this);
+int Packet::RegistryData::GetID() const {
+  return TypeID<BaseT>::GetID<RegistryData>();
 }
 
 Packet::MsgData::MsgData(std::string msg) :
@@ -53,24 +41,24 @@ const std::string& Packet::MsgData::GetMsg() const {
   return msg_;
 }
 
-void Packet::MsgData::Accept(Visitor& visitor) {
-  visitor.Visit(*this);
+int Packet::MsgData::GetID() const {
+  return TypeID<BaseT>::GetID<MsgData>();
 }
 
 Packet Packet::GameNotStartedData::MakePacket() {
   return Packet(PacketType::GAME_NOT_STARTED);
 }
 
-void Packet::GameNotStartedData::Accept(Visitor& visitor) {
-  visitor.Visit(*this);
+int Packet::GameNotStartedData::GetID() const {
+  return TypeID<BaseT>::GetID<GameNotStartedData>();
 }
 
 Packet Packet::GameStartedData::MakePacket() {
   return Packet(PacketType::GAME_STARTED);
 }
 
-void Packet::GameStartedData::Accept(Visitor& visitor) {
-  visitor.Visit(*this);
+int Packet::GameStartedData::GetID() const {
+  return TypeID<BaseT>::GetID<GameStartedData>();
 }
 
 Packet::GameServerAddressData::GameServerAddressData(int host, int port) : host(
@@ -84,7 +72,14 @@ Packet Packet::GameServerAddressData::MakePacket() {
   return res;
 }
 
-void Packet::GameServerAddressData::Accept(Visitor& visitor) {
-  visitor.Visit(*this);
+int Packet::GameServerAddressData::GetID() const {
+  return TypeID<BaseT>::GetID<GameServerAddressData>();
 }
 
+Packet Packet::StartGameData::MakePacket() {
+  return Packet(PacketType::START_GAME);
+}
+
+int Packet::StartGameData::GetID() const {
+  return TypeID<BaseT>::GetID<StartGameData>();
+}

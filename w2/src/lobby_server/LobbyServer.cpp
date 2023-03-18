@@ -47,12 +47,3 @@ int main(int argc, const char **argv)
   return 0;
 }
  */
-
-LobbyServer::IncomingPacketProcessor::IncomingPacketProcessor(
-  LobbyServer& server) : server_(server) {
-}
-
-void LobbyServer::IncomingPacketProcessor::Visit(
-  Packet::RegistryData& registry_data) {
-
-}

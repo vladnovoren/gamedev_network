@@ -52,8 +52,10 @@ std::optional<std::unique_ptr<Host::BaseEvent>>
 Host::PollEvent(int timeout) {
   ENetEvent enet_event;
   int res = enet_host_service(enet_host_, &enet_event, timeout);
-  if (res < 0)
+  if (res < 0) {
+    std::cout << "error occurred polling event\n";
     return nullptr;
+  }
   if (res == 0)
     return {};
   return ConvertEvent(&enet_event);
@@ -78,5 +80,12 @@ std::unique_ptr<Host::BaseEvent> Host::ConvertEvent(ENetEvent* enet_event) {
                                 enet_event->packet->dataLength)));
   }
   return {};
+}
+
+bool Host::IsSameAddress(const NonEmptyEvent& event, const Peer& original) {
+  if (event.sender_.GetHost() != original.GetHost() ||
+      event.sender_.GetPort() != original.GetPort())
+    return false;
+  return true;
 }
 

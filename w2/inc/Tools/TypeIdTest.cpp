@@ -1,13 +1,37 @@
-#include "TypeID.hpp"
-#include <iostream>
+#pragma once
 
-class A {};
+#include <type_traits>
 
-class B : public A {};
+template<typename BaseT>
+class TypeID {
+ public:
+  template<typename T>
+  static int GetId() {
+    static_assert(std::is_base_of_v<BaseT, T>);
+    static bool is_registered = false;
+    static int id = 0;
+    if (!is_registered) {
+      id = last_id_++;
+      is_registered = true;
+    }
+    return id;
+  }
 
-class C {};
+ private:
+  static int last_id_;
+};
 
-class D : public C {};
+template<typename BaseT>
+int TypeID<BaseT>::last_id_ = 0;
+
+
+class BaseA {};
+
+class DerivedA : public BaseA {};
+
+class BaseB {};
+
+class DerivedB : public BaseB {};
 
 int main() {
   std::cout << std::is_base_of_v<B, B> << '\n';

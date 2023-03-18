@@ -15,13 +15,16 @@ add_compile_options(
         -Werror
 )
 
+add_link_options(
+        -fsanitize=address
+)
+
 include(${PROJECT_SOURCE_DIR}/FindENet.cmake)
 
 add_executable(client
         src/Client/main.cpp
         src/Client/Client.cpp
-        src/Client/LobbyStartGameServerHandler.cpp
-)
+        )
 
 add_executable(lobby_server
         src/lobby_server/main.cpp
@@ -48,8 +51,7 @@ add_library(network STATIC
 
         src/network/Host/Host.cpp
         src/network/Host/Events.cpp
-        src/network/Host/BaseEventHandler.cpp
-)
+        )
 
 message(${ENet_LIBRARIES})
 

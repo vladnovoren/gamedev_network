@@ -47,6 +47,8 @@ std::unique_ptr<Packet::BaseData> Packet::ExtractData() const {
     case PacketType::GAME_SERVER_ADDRESS:
       return std::unique_ptr<BaseData>(
         (BaseData*) ParseAsGameServerAddressData());
+    case PacketType::START_GAME:
+      return std::unique_ptr<BaseData>((BaseData*) ParseAsStartGameData());
     case PacketType::UNDEFINED:
       std::cout << "packet type undefined\n";
       return nullptr;
@@ -62,7 +64,7 @@ Packet::MsgData* Packet::ParseAsMsg() const {
   return new MsgData(std::string(mem_sample_.data));
 }
 
-Packet::GameNotStartedData* Packet::ParseAsGameNotStarted() const{
+Packet::GameNotStartedData* Packet::ParseAsGameNotStarted() const {
   return new GameNotStartedData();
 }
 
@@ -71,6 +73,10 @@ Packet::GameStartedData* Packet::ParseAsGameStarted() const {
 }
 
 Packet::GameServerAddressData* Packet::ParseAsGameServerAddressData() const {
-  auto address_ptr = (Address*)mem_sample_.data;
+  auto address_ptr = (Address*) mem_sample_.data;
   return new GameServerAddressData(address_ptr->host, address_ptr->port);
+}
+
+Packet::StartGameData* Packet::ParseAsStartGameData() const {
+  return new StartGameData();
 }

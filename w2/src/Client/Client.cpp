@@ -1,5 +1,4 @@
 #include "Client/Client.hpp"
-#include "Client/LobbyStartGameEventHandler.hpp"
 #include "Host/Events.hpp"
 
 
@@ -86,12 +85,14 @@
 //}
 
 Client::Client() : host_(2, 4) {
+  InitEventHandlers();
 }
 
 int Client::Run() {
-  auto lobby_peer = ConnectToLobbyServer();
-  if (!lobby_peer.has_value())
+  auto opt_lobby_peer = ConnectToLobbyServer();
+  if (!opt_lobby_peer.has_value())
     return -1;
+  lobby_peer_ = std::move(opt_lobby_peer.value());
   return 0;
 }
 
@@ -99,33 +100,113 @@ std::optional<Peer> Client::ConnectToLobbyServer() {
   return host_.Connect(LocalhostTag, LOBBY_SERVER_PORT, 2);
 }
 
-std::optional<Peer> Client::ConnectToGameServer() {
-  return host_.Connect(LocalhostTag, GAME_SERVER_PORT, 2);
+int Client::LobbyServerProcessor() {
+  if (LobbyRegistry() < 0)
+    return -1;
+  if (LobbyStartGameStage() < 0)
+    return -1;
+  return 0;
 }
 
-void Client::LobbyServerProcessor(Peer& lobby_server_peer) {
-  LobbyRegistry(lobby_server_peer);
-}
-
-void Client::LobbyRegistry(Peer& lobby_server_peer) {
+int Client::LobbyRegistry() {
   std::cout << "Enter username: ";
   std::cin >> username_;
 
   auto registry_packet = Packet::RegistryData(username_).MakePacket();
-  lobby_server_peer.Send(registry_packet);
+  return lobby_peer_.Send(registry_packet);
 }
 
-void Client::LobbyStartGameEventHandler::Handle(
-  const Host::ReceiveEvent& event) {
-  auto packet_data = event.packet_.ExtractData();
-}
-
-void Client::LobbyStartGame() {
-  std::optional<std::unique_ptr<Host::BaseEvent>> event_ptr;
-  while (LobbyStartGameLoopCriteria()) {
-    event_ptr = host_.PollEvent(10);
-    event_ptr.value()->Handle(lobby_start_game_event_handler_);
-
-//    lobby_start_game_event_handler_.Handle(*event_ptr.value());
+int Client::LobbyStartGameStage() {
+  std::optional<std::unique_ptr<Host::BaseEvent>> opt_event_ptr;
+  while (state_ != State::CONNECTED_TO_GAME_SERVER) {
+    opt_event_ptr = host_.PollEvent(10);
+    if (!opt_event_ptr.has_value())
+      continue;
+    if (opt_event_ptr.value() == nullptr)
+      return -1;
+    Host::BaseEvent& event = *opt_event_ptr.value();
   }
+}
+
+int Client::LobbyWaitForStart() {
+  std::string input_str;
+  while (std::getline(std::cin, input_str)) {
+    if (input_str == "start") {
+      return LobbyStartGame();
+    } else {
+      std::cout << "incorrect query, to start game type \"start\"\n";
+    }
+  }
+  return 0;
+}
+
+int Client::LobbyStartGame() {
+  return lobby_peer_.Send(Packet::StartGameData().MakePacket());
+}
+
+void Client::InitEventHandlers() {
+  start_game_stage_handlers_[HandlerType::GetID<Host::NoneEvent>()] = &Client::NoneEventHandler;
+  start_game_stage_handlers_[HandlerType::GetID<Host::ConnectEvent>()] = &Client::LobbyConnectEventHandler;
+  start_game_stage_handlers_[HandlerType::GetID<Host::DisconnectEvent>()] = &Client::LobbyDisconnectEventHandler;
+  start_game_stage_handlers_[HandlerType::GetID<Host::ReceiveEvent>()] = &Client::LobbyReceiveEventHandler;
+}
+
+int Client::NoneEventHandler(const Host::BaseEvent&) {
+  return 0;
+}
+
+int Client::LobbyConnectEventHandler(const Host::BaseEvent& raw_event) {
+  auto event = static_cast<const Host::ConnectEvent&>(raw_event);
+  if (!Host::IsSameAddress(event, lobby_peer_)) {
+    std::cout << "unknown connection, lobby server required\n";
+    return -1;
+  }
+  std::cout << "connection with lobby server established\n";
+  return 0;
+}
+
+int Client::LobbyDisconnectEventHandler(const Host::BaseEvent&) {
+  return 0;
+}
+
+int Client::LobbyReceiveEventHandler(const Host::BaseEvent& raw_event) {
+  auto event = static_cast<const Host::ReceiveEvent&>(raw_event);
+  if (!Host::IsSameAddress(event, lobby_peer_)) {
+    std::cout << "packet received from unknown host\n";
+    return -1;
+  }
+
+  auto data_ptr = event.packet.ExtractData();
+  if (data_ptr == nullptr)
+    return -1;
+
+  return start_game_stage_processors_[data_ptr->GetID()](*this, *data_ptr);
+}
+
+void Client::InitPacketProcessors() {
+//  start_game_stage_processors_[ProcessorType::GetID<Packet::GameNotStartedData>()] = &Client::GameNotStartedPacketProcessor;
+//  start_game_stage_processors_[ProcessorType::GetID<Packet::GameStartedData>()] = &Client::GameStartedPacketProcessor;
+//  start_game_stage_processors_[ProcessorType::GetID<Packet::GameServerAddressData>()] = &Client::GameServerAddressPacketProcessor;
+}
+
+int Client::GameNotStartedPacketProcessor(const Packet::BaseData&) {
+  return LobbyWaitForStart();
+}
+
+int Client::GameStartedPacketProcessor(const Packet::BaseData&) {
+  state_ = State::GAME_STARTED;
+  return 0;
+}
+
+int Client::GameServerAddressPacketProcessor(const Packet::BaseData& raw_data) {
+  auto address_data = static_cast<const Packet::GameServerAddressData&>(raw_data);
+  auto opt_game_server_peer_ = host_.Connect(address_data.host,
+                                             address_data.port, 1);
+  if (!opt_game_server_peer_.has_value()) {
+    std::cout << "error connecting to game server\n";
+    return -1;
+  }
+  game_server_peer_ = std::move(opt_game_server_peer_.value());
+  state_ = State::CONNECTED_TO_GAME_SERVER;
+  return 0;
 }

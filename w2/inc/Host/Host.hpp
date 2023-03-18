@@ -44,6 +44,9 @@ class Host {
 
   static std::unique_ptr<BaseEvent> ConvertEvent(ENetEvent* enet_event);
 
+  [[nodiscard]] static bool
+  IsSameAddress(const NonEmptyEvent& event, const Peer& original);
+
  private:
   static constexpr char const* ENET_HOST_CREATION_BAG_MSG = "cannot create ENetHost";
   static constexpr char const* ENET_HOST_CONNECTION_BAG_MSG = "cannot connect to remote host";
