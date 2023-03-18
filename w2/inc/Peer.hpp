@@ -7,6 +7,8 @@
 
 class Peer {
  public:
+  Peer() = default;
+
   int Send(const Packet& packet);
 
   [[nodiscard]] int GetHost() const;

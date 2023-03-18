@@ -39,8 +39,8 @@ class Client {
   int LobbyStartGame();
 
  private:
-  using HandlerType = TypeID<Host::BaseEvent>;
-  using EventHandlerT = std::function<void(Client, const Host::BaseEvent&)>;
+  using HandlerID = TypeID<Host::BaseEvent>;
+  using HandlerT = std::function<int(Client, const Host::BaseEvent&)>;
 
   void InitEventHandlers();
 
@@ -53,7 +53,8 @@ class Client {
   int LobbyReceiveEventHandler(const Host::BaseEvent& raw_event);
 
  private:
-  using PacketProcessorT = std::function<void(Client, const Packet::BaseData&)>;
+  using ProcessorID = TypeID<Packet::BaseData>;
+  using ProcessorT = std::function<int(Client, const Packet::BaseData&)>;
 
   void InitPacketProcessors();
 
@@ -73,7 +74,7 @@ class Client {
   Peer game_server_peer_;
 
  private:
-  AutoArray<EventHandlerT> start_game_stage_handlers_;
+  AutoArray<HandlerT> start_game_stage_handlers_;
 
-  AutoArray<PacketProcessorT> start_game_stage_processors_;
+  AutoArray<ProcessorT> start_game_stage_processors_;
 };

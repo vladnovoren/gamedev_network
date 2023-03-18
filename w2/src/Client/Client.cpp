@@ -125,6 +125,8 @@ int Client::LobbyStartGameStage() {
     if (opt_event_ptr.value() == nullptr)
       return -1;
     Host::BaseEvent& event = *opt_event_ptr.value();
+    if (start_game_stage_handlers_[event.GetID()](*this, event) < 0)
+      return -1;
   }
 }
 
@@ -145,10 +147,10 @@ int Client::LobbyStartGame() {
 }
 
 void Client::InitEventHandlers() {
-  start_game_stage_handlers_[HandlerType::GetID<Host::NoneEvent>()] = &Client::NoneEventHandler;
-  start_game_stage_handlers_[HandlerType::GetID<Host::ConnectEvent>()] = &Client::LobbyConnectEventHandler;
-  start_game_stage_handlers_[HandlerType::GetID<Host::DisconnectEvent>()] = &Client::LobbyDisconnectEventHandler;
-  start_game_stage_handlers_[HandlerType::GetID<Host::ReceiveEvent>()] = &Client::LobbyReceiveEventHandler;
+  start_game_stage_handlers_[HandlerID::GetID<Host::NoneEvent>()] = &Client::NoneEventHandler;
+  start_game_stage_handlers_[HandlerID::GetID<Host::ConnectEvent>()] = &Client::LobbyConnectEventHandler;
+  start_game_stage_handlers_[HandlerID::GetID<Host::DisconnectEvent>()] = &Client::LobbyDisconnectEventHandler;
+  start_game_stage_handlers_[HandlerID::GetID<Host::ReceiveEvent>()] = &Client::LobbyReceiveEventHandler;
 }
 
 int Client::NoneEventHandler(const Host::BaseEvent&) {
@@ -184,9 +186,9 @@ int Client::LobbyReceiveEventHandler(const Host::BaseEvent& raw_event) {
 }
 
 void Client::InitPacketProcessors() {
-//  start_game_stage_processors_[ProcessorType::GetID<Packet::GameNotStartedData>()] = &Client::GameNotStartedPacketProcessor;
-//  start_game_stage_processors_[ProcessorType::GetID<Packet::GameStartedData>()] = &Client::GameStartedPacketProcessor;
-//  start_game_stage_processors_[ProcessorType::GetID<Packet::GameServerAddressData>()] = &Client::GameServerAddressPacketProcessor;
+  start_game_stage_processors_[ProcessorID::GetID<Packet::GameNotStartedData>()] = &Client::GameNotStartedPacketProcessor;
+  start_game_stage_processors_[ProcessorID::GetID<Packet::GameStartedData>()] = &Client::GameStartedPacketProcessor;
+  start_game_stage_processors_[ProcessorID::GetID<Packet::GameServerAddressData>()] = &Client::GameServerAddressPacketProcessor;
 }
 
 int Client::GameNotStartedPacketProcessor(const Packet::BaseData&) {
