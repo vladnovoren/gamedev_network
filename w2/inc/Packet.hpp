@@ -7,15 +7,16 @@
 using byte_t = enet_uint8;
 
 enum class PacketType {
-  SERVER_ADDRESS,
+  SERVER_PORT,
+  SESSION_START
 };
 
 struct Packet {
-  Packet(ENetPacket *enet_packet);
-  Packet(PacketType in_type, byte_t *data, size_t data_size);
+  Packet(ENetPacket* enet_packet);
+  Packet(PacketType in_type, byte_t* data, size_t data_size);
 
   byte_t* GetData();
 
   PacketType type;
-  ENetPacket *enet_packet = nullptr;
+  ENetPacket* enet_packet = nullptr;
 };
