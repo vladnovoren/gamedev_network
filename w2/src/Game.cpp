@@ -133,7 +133,7 @@ void Game::SendPings() {
     for (auto& client : clients_) {
       msg += client.second.Name();
       msg += ": ";
-      msg += std::to_string(client.second.peer->roundTripTime);
+      msg += std::to_string(client.second.peer->lastTripTime);
       msg += '\n';
     }
 
