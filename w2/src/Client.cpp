@@ -72,8 +72,6 @@ void Client::HandlePacketReceiving(const ENetEvent& event) {
 }
 
 void Client::HandleLobbyServerPacket(const Packet& packet) {
-  std::cout << (int)packet.type << '\n';
-  std::cout << packet.enet_packet->dataLength << '\n';
   switch (packet.type) {
     case PacketType::SERVER_PORT:
       game_server_port_ = *(port_t*)packet.GetData();

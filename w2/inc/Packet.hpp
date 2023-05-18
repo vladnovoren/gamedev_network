@@ -8,7 +8,8 @@ using byte_t = enet_uint8;
 
 enum class PacketType {
   SERVER_PORT,
-  SESSION_START
+  SESSION_START,
+  USER_LIST
 };
 
 struct Packet {
