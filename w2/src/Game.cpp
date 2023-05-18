@@ -36,7 +36,7 @@ void Game::HandleEvents() {
         case ENET_EVENT_TYPE_RECEIVE:
           break;
         case ENET_EVENT_TYPE_DISCONNECT:
-          LogDisconnected(event.peer->address);
+          HandleDisconnect(event.peer);
           break;
         default:
           throw std::runtime_error("unknown enet event type");
@@ -53,7 +53,27 @@ void Game::HandleConnection(ENetPeer* peer) {
   Client new_client(peer);
   SendPlayerList(new_client);
   SendNewPlayerInfo(new_client);
-  clients_.push_back(new_client);
+  clients_[new_client.Id()] = new_client;
+  port_id_[peer->address.port] = new_client.Id();
+}
+
+void Game::HandleDisconnect(ENetPeer* peer) {
+  assert(peer != nullptr);
+
+  LogDisconnected(peer->address);
+
+  auto id = port_id_[peer->address.port];
+  auto client_it = clients_.find(id);
+  std::string name = client_it->second.Name();
+  clients_.erase(id);
+
+  std::string msg = "Player ";
+  msg += name;
+  msg += " leaved game";
+
+  for (auto& client : clients_) {
+    SendMessage(client.second.peer, msg);
+  }
 }
 
 void Game::SendPlayerList(Client& new_client) {
@@ -64,7 +84,7 @@ void Game::SendPlayerList(Client& new_client) {
   } else {
     message = "Player list:\n";
     for (auto& client : clients_) {
-      message += client.Name();
+      message += client.second.Name();
       message += '\n';
     }
   }
@@ -77,7 +97,7 @@ void Game::SendNewPlayerInfo(Client& new_client) {
   message += new_client.Name();
 
   for (auto& client : clients_) {
-    SendMessage(client.peer, message);
+    SendMessage(client.second.peer, message);
   }
 }
 

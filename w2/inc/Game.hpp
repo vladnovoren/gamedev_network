@@ -3,6 +3,7 @@
 #include "Packet.hpp"
 #include "Host.hpp"
 #include <vector>
+#include <unordered_map>
 
 class Game {
  public:
@@ -13,6 +14,7 @@ class Game {
  private:
   class Client {
    public:
+    Client() = default;
     Client(ENetPeer* peer);
 
     const std::string& Name() const;
@@ -36,6 +38,8 @@ class Game {
 
   void HandleConnection(ENetPeer* peer);
 
+  void HandleDisconnect(ENetPeer* peer);
+
  private:
   void SendPlayerList(Client& new_client);
 
@@ -44,7 +48,8 @@ class Game {
  private:
   ENetHost* host_;
 
-  std::vector<Client> clients_;
+  std::unordered_map<size_t, Client> clients_;
+  std::unordered_map<port_t, size_t> port_id_;
 
   port_t game_server_port_;
 };
