@@ -12,6 +12,8 @@ void LogConnectionEstablished(const ENetAddress& address);
 
 void LogDisconnected(const ENetAddress& address);
 
+bool IsEventFromPeer(const ENetEvent& event, const ENetPeer* peer);
+
 struct Address {
   host_t host;
   port_t port;

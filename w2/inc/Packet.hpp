@@ -13,9 +13,11 @@ enum class PacketType {
 
 struct Packet {
   Packet(ENetPacket* enet_packet);
+  Packet(PacketType in_type);
   Packet(PacketType in_type, byte_t* data, size_t data_size);
 
   byte_t* GetData();
+  const byte_t* GetData() const;
 
   PacketType type;
   ENetPacket* enet_packet = nullptr;

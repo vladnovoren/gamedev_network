@@ -6,18 +6,18 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 add_compile_options(
-        -O2
-        -g
-        -fsanitize=address
+  -O2
+  -g
+  -fsanitize=address
 
-        -Wall
-        -Wextra
-        -Wpedantic
-        -Werror
+  -Wall
+  -Wextra
+  -Wpedantic
+  -Werror
 )
 
 add_link_options(
-        -fsanitize=address
+  -fsanitize=address
 )
 
 include(${PROJECT_SOURCE_DIR}/FindENet.cmake)
@@ -37,17 +37,26 @@ target_sources(lobby PUBLIC
 )
 
 
+add_executable(game)
+
+target_sources(game PUBLIC
+  src/Game.cpp
+)
+
+
 add_library(network STATIC)
 
 target_sources(network PUBLIC
-        src/Packet.cpp
-        src/Host.cpp
+  src/Packet.cpp
+  src/Host.cpp
 )
+
 
 message(${ENet_LIBRARIES})
 
 target_link_libraries(network PUBLIC ${ENet_LIBRARIES})
 target_link_libraries(client PUBLIC network)
 target_link_libraries(lobby PUBLIC network)
+target_link_libraries(game PUBLIC network)
 
 include_directories(inc ${ENet_INCLUDE_DIRS})

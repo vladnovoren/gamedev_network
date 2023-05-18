@@ -14,15 +14,20 @@ class Client {
  private:
   void InitHost();
 
-  void ConnectToLobbyServer();
-
-  void ProcessLobbyServerEvents();
-
   void Input();
+
+  void ConnectToLobbyServer();
 
   void ConnectToGameServer();
 
-  void ProcessGameServerEvents();
+ private:
+  void HandleEvents();
+
+  void HandlePacketReceiving(const ENetEvent& event);
+
+  void HandleLobbyServerPacket(const Packet& packet);
+
+  void HandleGameServerPacket(const Packet& packet);
 
  private:
   ENetHost* client_host_ = nullptr;
@@ -32,6 +37,7 @@ class Client {
 
   ENetPeer* game_server_peer_ = nullptr;
   port_t game_server_port_;
+
  private:
   enum class State {
     IDLE,

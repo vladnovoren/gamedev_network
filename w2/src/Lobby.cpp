@@ -74,13 +74,12 @@ void Lobby::HandleSessionStartPacket(ENetPeer* sender_peer) {
 }
 
 void Lobby::SendGameServerPort(ENetPeer* client_peer) {
-  char packet_data[sizeof(PacketType) + sizeof(port_t)];
-  auto packet_type = PacketType::SERVER_PORT;
-  memcpy(packet_data, &packet_type, sizeof(PacketType));
-  memcpy(packet_data + sizeof(PacketType), &game_server_port_, sizeof(port_t));
-  auto packet = enet_packet_create(packet_data, 0,
-                                   sizeof(PacketType) + sizeof(port_t));
-  enet_peer_send(client_peer, 0, packet);
+  Packet packet(PacketType::SERVER_PORT, (byte_t*)&game_server_port_,
+                sizeof(port_t));
+  std::cout << *(int*)packet.enet_packet->data << '\n';
+  std::cout << *(port_t*)(packet.enet_packet->data + sizeof(PacketType)) << '\n';
+  std::cout << packet.enet_packet->dataLength << '\n';
+  enet_peer_send(client_peer, 0, packet.enet_packet);
   LogGameServerPortSending(client_peer);
 }
 
@@ -97,7 +96,7 @@ void Lobby::LogGameSessionStart(ENetPeer* starter) {
 }
 
 void Lobby::LogGameServerPortSending(ENetPeer* client) {
-  printf("game server port sent to client[port = %d]", client->address.port);
+  printf("game server port sent to client[port = %d]\n", client->address.port);
 }
 
 int main() {

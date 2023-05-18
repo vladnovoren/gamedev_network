@@ -8,7 +8,8 @@ void Client::Run() {
   InitHost();
   ConnectToLobbyServer();
   std::thread input_thread(&Client::Input, this);
-  ProcessLobbyServerEvents();
+  HandleEvents();
+  input_thread.join();
 }
 
 void Client::InitHost() {
@@ -30,8 +31,17 @@ void Client::ConnectToLobbyServer() {
   state_ = State::CONNECTED_TO_LOBBY_SERVER;
 }
 
-void Client::ProcessLobbyServerEvents() {
-  while (state_ != State::CONNECTED_TO_GAME_SERVER) {
+void Client::ConnectToGameServer() {
+  ENetAddress address;
+  enet_address_set_host(&address, "localhost");
+  address.port = game_server_port_;
+
+  game_server_peer_ = enet_host_connect(client_host_, &address, 2, 0);
+  state_ = State::CONNECTED_TO_GAME_SERVER;
+}
+
+void Client::HandleEvents() {
+  while (true) {
     ENetEvent event;
     while (enet_host_service(client_host_, &event, 10) > 0) {
       switch (event.type) {
@@ -39,19 +49,8 @@ void Client::ProcessLobbyServerEvents() {
           LogConnectionEstablished(event.peer->address);
           break;
         case ENET_EVENT_TYPE_RECEIVE:
-          {
-            Packet packet(event.packet);
-            switch (packet.type) {
-              case PacketType::SERVER_PORT:
-                game_server_port_ = *(port_t*)packet.GetData();
-                ConnectToGameServer();
-                break;
-              default:
-                throw std::runtime_error("unknown packet type");
-                break;
-            }
-            break;
-          }
+          HandlePacketReceiving(event);
+          break;
         case ENET_EVENT_TYPE_DISCONNECT:
           LogDisconnected(event.peer->address);
           break;
@@ -62,33 +61,43 @@ void Client::ProcessLobbyServerEvents() {
   }
 }
 
+void Client::HandlePacketReceiving(const ENetEvent& event) {
+  if (IsEventFromPeer(event, lobby_server_peer_)) {
+    HandleLobbyServerPacket(Packet(event.packet));
+  } else if (IsEventFromPeer(event, game_server_peer_)) {
+    HandleGameServerPacket(Packet(event.packet));
+  } else {
+    throw std::runtime_error("packet received from unexpected peer");
+  }
+}
+
+void Client::HandleLobbyServerPacket(const Packet& packet) {
+  std::cout << (int)packet.type << '\n';
+  std::cout << packet.enet_packet->dataLength << '\n';
+  switch (packet.type) {
+    case PacketType::SERVER_PORT:
+      game_server_port_ = *(port_t*)packet.GetData();
+      ConnectToGameServer();
+      break;
+    default:
+      throw std::runtime_error("unexpected packet type");
+      break;
+  }
+}
+
+void Client::HandleGameServerPacket(const Packet&) {
+}
+
 void Client::Input() {
   while (game_server_peer_ == nullptr) {
     std::string input;
     std::getline(std::cin, input);
     if (input == "start") {
       printf("Starting the game...\n");
-      auto start_game = PacketType::SESSION_START;
-      auto packet = enet_packet_create(&start_game, sizeof(PacketType),
-                                       ENET_PACKET_FLAG_RELIABLE);
-      enet_peer_send(lobby_server_peer_, 0, packet);
+      Packet packet(PacketType::SESSION_START);
+      enet_peer_send(lobby_server_peer_, 0, packet.enet_packet);
       break;
     }
-  }
-}
-
-void Client::ConnectToGameServer() {
-  ENetAddress address;
-  enet_address_set_host(&address, "localhost");
-  address.port = game_server_port_;
-
-  game_server_peer_ = enet_host_connect(client_host_, &address, 2, 0);
-  state_ = State::CONNECTED_TO_GAME_SERVER;
-}
-
-void Client::ProcessGameServerEvents() {
-  while (true) {
-
   }
 }
 
