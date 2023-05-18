@@ -7,9 +7,7 @@ Client::Client(port_t lobby_server_port)
 void Client::Run() {
   InitHost();
   ConnectToLobbyServer();
-  std::thread input_thread(&Client::Input, this);
   HandleEvents();
-  input_thread.join();
 }
 
 void Client::InitHost() {
@@ -58,6 +56,10 @@ void Client::HandleEvents() {
           break;
       }
     }
+    Input();
+    if (state_ == State::CONNECTED_TO_GAME_SERVER) {
+      SendTimeToGameServer();
+    }
   }
 }
 
@@ -94,15 +96,36 @@ void Client::HandleGameServerPacket(const Packet& packet) {
   }
 }
 
+void Client::SendTimeToGameServer() {
+  static IntervalTimer timer(1000);
+  if (timer.IsReset()) {
+    std::string msg = "time is ";
+    msg += std::to_string(enet_time_get());
+    Packet packet(PacketType::MESSAGE, (byte_t*)msg.c_str(), msg.size() + 1);
+    enet_peer_send(game_server_peer_, 0, packet.enet_packet);
+  }
+}
+
 void Client::Input() {
-  while (game_server_peer_ == nullptr) {
-    std::string input;
+  if (game_started_)
+    return;
+
+  std::string input;
+
+  fd_set readSet;
+  FD_ZERO(&readSet);
+  FD_SET(STDIN_FILENO, &readSet);
+
+  timeval timeout = {0, 10000};
+  select(STDIN_FILENO + 1, &readSet, NULL, NULL, &timeout);
+
+  if (FD_ISSET(STDIN_FILENO, &readSet)) {
     std::getline(std::cin, input);
-    if (input == "start") {
+    if (input  == "start") {
       printf("Starting the game...\n");
       Packet packet(PacketType::SESSION_START);
       enet_peer_send(lobby_server_peer_, 0, packet.enet_packet);
-      break;
+      game_started_ = true;
     }
   }
 }

@@ -2,6 +2,7 @@
 
 #include "Packet.hpp"
 #include "Host.hpp"
+#include "Time.hpp"
 #include <stdexcept>
 #include <thread>
 
@@ -30,6 +31,9 @@ class Client {
   void HandleGameServerPacket(const Packet& packet);
 
  private:
+  void SendTimeToGameServer();
+
+ private:
   ENetHost* client_host_ = nullptr;
 
   ENetPeer* lobby_server_peer_ = nullptr;
@@ -38,12 +42,16 @@ class Client {
   ENetPeer* game_server_peer_ = nullptr;
   port_t game_server_port_;
 
+
+
  private:
   enum class State {
     IDLE,
     CONNECTED_TO_LOBBY_SERVER,
     CONNECTED_TO_GAME_SERVER
   };
+
+  bool game_started_ = false;
 
   State state_ = State::IDLE;
 };

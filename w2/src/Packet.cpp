@@ -37,3 +37,10 @@ void SendMessage(ENetPeer* peer, const std::string& msg) {
                 msg.size() + 1);
   enet_peer_send(peer, 0, packet.enet_packet);
 }
+
+
+void SendMessageBroadcast(ENetHost* host, const std::string& msg) {
+  Packet packet(PacketType::MESSAGE, (byte_t*)msg.c_str(),
+                msg.size() + 1);
+  enet_host_broadcast(host, 0, packet.enet_packet);
+}

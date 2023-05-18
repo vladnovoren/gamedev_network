@@ -26,3 +26,4 @@ struct Packet {
 };
 
 void SendMessage(ENetPeer* peer, const std::string& msg);
+void SendMessageBroadcast(ENetHost* host, const std::string& msg);

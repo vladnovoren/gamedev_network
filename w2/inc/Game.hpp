@@ -2,6 +2,7 @@
 
 #include "Packet.hpp"
 #include "Host.hpp"
+#include "Time.hpp"
 #include <vector>
 #include <unordered_map>
 
@@ -40,10 +41,14 @@ class Game {
 
   void HandleDisconnect(ENetPeer* peer);
 
+  void HandleReceivedPacket(const ENetEvent& event);
+
  private:
   void SendPlayerList(Client& new_client);
 
   void SendNewPlayerInfo(Client& client);
+
+  void SendPings();
 
  private:
   ENetHost* host_;

@@ -6,14 +6,12 @@ bool IsEventFromPeer(const ENetEvent& event, const ENetPeer* peer) {
 }
 
 void LogConnectionEstablished(const ENetAddress& address) {
-  printf("Connection established with:\n"
-         "host: %d\n"
-         "port: %d\n", address.host, address.port);
+  printf("Connection established with: [host = %d, port = %d]\n",
+         address.host, address.port);
 }
 
 void LogDisconnected(const ENetAddress& address) {
-  printf("Disconnected from:\n"
-        "host: %d\n"
-        "port: %d\n", address.host, address.port);
+  printf("Disconnected from: [host = %d, port = %d]\n",
+         address.host, address.port);
 }
 

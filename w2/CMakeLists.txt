@@ -49,6 +49,7 @@ add_library(network STATIC)
 target_sources(network PUBLIC
   src/Packet.cpp
   src/Host.cpp
+  src/Time.cpp
 )
 
 

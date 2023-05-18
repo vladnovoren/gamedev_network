@@ -23,6 +23,13 @@ void Game::Run() {
   HandleEvents();
 }
 
+void Game::InitHost() {
+  ENetAddress address;
+  address.host = ENET_HOST_ANY;
+  address.port = game_server_port_;
+  host_ = enet_host_create(&address, 32, 2, 0, 0);
+}
+
 void Game::HandleEvents() {
   while (true) {
     ENetEvent event;
@@ -34,6 +41,7 @@ void Game::HandleEvents() {
           HandleConnection(event.peer);
           break;
         case ENET_EVENT_TYPE_RECEIVE:
+          HandleReceivedPacket(event);
           break;
         case ENET_EVENT_TYPE_DISCONNECT:
           HandleDisconnect(event.peer);
@@ -43,6 +51,7 @@ void Game::HandleEvents() {
           break;
       }
     }
+    SendPings();
   }
 }
 
@@ -76,17 +85,32 @@ void Game::HandleDisconnect(ENetPeer* peer) {
   }
 }
 
+void Game::HandleReceivedPacket(const ENetEvent& event) {
+  Packet packet(event.packet);
+  switch (packet.type) {
+    case PacketType::MESSAGE:
+      printf("Message from %s: %s\n",
+             clients_[port_id_[event.peer->address.port]].Name().c_str(),
+             (char*)packet.GetData());
+      break;
+    default:
+      throw std::runtime_error("unexpected packet type\n");
+      break;
+  }
+}
+
 void Game::SendPlayerList(Client& new_client) {
   std::string message;
 
   if (clients_.empty()) {
-    message = "No players on server yet";
+    message = "No other players on server yet";
   } else {
     message = "Player list:\n";
     for (auto& client : clients_) {
       message += client.second.Name();
       message += '\n';
     }
+    message.pop_back();
   }
 
   SendMessage(new_client.peer, message);
@@ -101,12 +125,23 @@ void Game::SendNewPlayerInfo(Client& new_client) {
   }
 }
 
-void Game::InitHost() {
-  ENetAddress address;
-  address.host = ENET_HOST_ANY;
-  address.port = game_server_port_;
-  host_ = enet_host_create(&address, 32, 2, 0, 0);
+void Game::SendPings() {
+  static IntervalTimer timer(1000);
+
+  if (timer.IsReset()) {
+    std::string msg = "pings:\n";
+    for (auto& client : clients_) {
+      msg += client.second.Name();
+      msg += ": ";
+      msg += std::to_string(client.second.peer->roundTripTime);
+      msg += '\n';
+    }
+
+    SendMessageBroadcast(host_, msg);
+  }
 }
+
+
 
 int main() {
   Game game(2002);
