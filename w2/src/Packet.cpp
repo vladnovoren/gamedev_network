@@ -31,3 +31,9 @@ byte_t* Packet::GetData() {
 const byte_t* Packet::GetData() const {
   return enet_packet->data + sizeof(PacketType);
 }
+
+void SendMessage(ENetPeer* peer, const std::string& msg) {
+  Packet packet(PacketType::MESSAGE, (byte_t*)msg.c_str(),
+                msg.size() + 1);
+  enet_peer_send(peer, 0, packet.enet_packet);
+}

@@ -39,6 +39,8 @@ class Game {
  private:
   void SendPlayerList(Client& new_client);
 
+  void SendNewPlayerInfo(Client& client);
+
  private:
   ENetHost* host_;
 

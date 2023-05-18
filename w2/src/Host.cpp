@@ -16,3 +16,4 @@ void LogDisconnected(const ENetAddress& address) {
         "host: %d\n"
         "port: %d\n", address.host, address.port);
 }
+

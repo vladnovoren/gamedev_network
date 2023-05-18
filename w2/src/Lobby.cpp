@@ -97,7 +97,7 @@ void Lobby::LogGameServerPortSending(ENetPeer* client) {
 }
 
 int main() {
-  Lobby lobby(10887, 10888);
+  Lobby lobby(2001, 2002);
   lobby.Run();
   return 0;
 }

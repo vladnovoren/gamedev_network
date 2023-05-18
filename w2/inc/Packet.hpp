@@ -3,13 +3,14 @@
 #include "enet/enet.h"
 #include <cstring>
 #include <cassert>
+#include <string>
 
 using byte_t = enet_uint8;
 
 enum class PacketType {
   SERVER_PORT,
   SESSION_START,
-  USER_LIST
+  MESSAGE
 };
 
 struct Packet {
@@ -23,3 +24,5 @@ struct Packet {
   PacketType type;
   ENetPacket* enet_packet = nullptr;
 };
+
+void SendMessage(ENetPeer* peer, const std::string& msg);

@@ -52,19 +52,33 @@ void Game::HandleConnection(ENetPeer* peer) {
   LogConnectionEstablished(peer->address);
   Client new_client(peer);
   SendPlayerList(new_client);
+  SendNewPlayerInfo(new_client);
   clients_.push_back(new_client);
 }
 
 void Game::SendPlayerList(Client& new_client) {
-  std::string player_list_msg = "Player list:\n";
-  for (auto& client : clients_) {
-    player_list_msg += client.Name();
-    player_list_msg += '\n';
+  std::string message;
+
+  if (clients_.empty()) {
+    message = "No players on server yet";
+  } else {
+    message = "Player list:\n";
+    for (auto& client : clients_) {
+      message += client.Name();
+      message += '\n';
+    }
   }
 
-  Packet packet(PacketType::USER_LIST, (byte_t*)player_list_msg.c_str(),
-                player_list_msg.size() + 1);
-  enet_peer_send(new_client.peer, 0, packet.enet_packet);
+  SendMessage(new_client.peer, message);
+}
+
+void Game::SendNewPlayerInfo(Client& new_client) {
+  std::string message = "New player joined game: ";
+  message += new_client.Name();
+
+  for (auto& client : clients_) {
+    SendMessage(client.peer, message);
+  }
 }
 
 void Game::InitHost() {
@@ -75,7 +89,7 @@ void Game::InitHost() {
 }
 
 int main() {
-  Game game(10888);
+  Game game(2002);
   game.Run();
   return 0;
 }

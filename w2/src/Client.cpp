@@ -83,7 +83,15 @@ void Client::HandleLobbyServerPacket(const Packet& packet) {
   }
 }
 
-void Client::HandleGameServerPacket(const Packet&) {
+void Client::HandleGameServerPacket(const Packet& packet) {
+  switch (packet.type) {
+    case PacketType::MESSAGE:
+      std::cout << (char*)packet.GetData() << '\n';
+      break;
+    default:
+      throw std::runtime_error("unexpected packet type");
+      break;
+  }
 }
 
 void Client::Input() {
@@ -100,7 +108,7 @@ void Client::Input() {
 }
 
 int main() {
-  Client client(10887);
+  Client client(2001);
   client.Run();
   return 0;
 }
