@@ -133,11 +133,11 @@ void Game::SendPings() {
     for (auto& client : clients_) {
       msg += client.second.Name();
       msg += ": ";
-      msg += std::to_string(client.second.peer->lastTripTime);
+      msg += std::to_string(client.second.peer->lastRoundTripTime);
       msg += '\n';
     }
 
-    SendMessageBroadcast(host_, msg);
+    SendMessageBroadcast(host_, msg, ENET_PACKET_FLAG_UNSEQUENCED);
   }
 }
 

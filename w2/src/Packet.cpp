@@ -8,19 +8,19 @@ Packet::Packet(ENetPacket* in_enet_packet) {
   enet_packet = in_enet_packet;
 }
 
-Packet::Packet(PacketType in_type) : type(in_type) {
+Packet::Packet(PacketType in_type, uint32_t flags) : type(in_type) {
   enet_packet = enet_packet_create(&type, sizeof(PacketType),
-                                   ENET_PACKET_FLAG_RELIABLE);
+                                   flags);
 }
 
-Packet::Packet(PacketType in_type, byte_t* data, size_t data_size)
-    : type(in_type) {
+Packet::Packet(PacketType in_type, byte_t* data, size_t data_size,
+               uint32_t flags) : type(in_type) {
   byte_t* data_with_type = (byte_t*)malloc(sizeof(PacketType) + data_size);
   memcpy(data_with_type, &in_type, sizeof(PacketType));
   memcpy(data_with_type + sizeof(PacketType), data, data_size);
   enet_packet = enet_packet_create(data_with_type,
                                    sizeof(PacketType) + data_size,
-                                   ENET_PACKET_FLAG_RELIABLE);
+                                   flags);
   free(data_with_type);
 }
 
@@ -32,15 +32,15 @@ const byte_t* Packet::GetData() const {
   return enet_packet->data + sizeof(PacketType);
 }
 
-void SendMessage(ENetPeer* peer, const std::string& msg) {
+void SendMessage(ENetPeer* peer, const std::string& msg, uint32_t flags) {
   Packet packet(PacketType::MESSAGE, (byte_t*)msg.c_str(),
-                msg.size() + 1);
+                msg.size() + 1, flags);
   enet_peer_send(peer, 0, packet.enet_packet);
 }
 
-
-void SendMessageBroadcast(ENetHost* host, const std::string& msg) {
+void SendMessageBroadcast(ENetHost* host, const std::string& msg,
+                          uint32_t flags) {
   Packet packet(PacketType::MESSAGE, (byte_t*)msg.c_str(),
-                msg.size() + 1);
+                msg.size() + 1, flags);
   enet_host_broadcast(host, 0, packet.enet_packet);
 }
