@@ -1,16 +1,10 @@
 #pragma once
+
 #include <cstdint>
-#include <enet/enet.h>
+#include "IBitStream.hpp"
+#include "OBitStream.hpp"
 #include "entity.h"
 
-enum MessageType : uint8_t
-{
-  E_CLIENT_TO_SERVER_JOIN = 0,
-  E_SERVER_TO_CLIENT_NEW_ENTITY,
-  E_SERVER_TO_CLIENT_SET_CONTROLLED_ENTITY,
-  E_CLIENT_TO_SERVER_STATE,
-  E_SERVER_TO_CLIENT_SNAPSHOT
-};
 
 void send_join(ENetPeer *peer);
 void send_new_entity(ENetPeer *peer, const Entity &ent);
