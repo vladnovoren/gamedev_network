@@ -19,7 +19,8 @@ set(COMPILE_OPTIONS
 set(LINK_OPTIONS "-fsanitize=address")
 
 
-add_subdirectory(../third_party/enet ../third_party/enet/lib)
+add_subdirectory(${CMAKE_SOURCE_DIR}/../third_party/enet
+${CMAKE_SOURCE_DIR}/../third_party/enet/lib)
 
 
 add_executable(client)

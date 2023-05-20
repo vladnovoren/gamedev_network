@@ -3,20 +3,24 @@ cmake_minimum_required(VERSION 3.13)
 project(w4)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+add_subdirectory(${CMAKE_SOURCE_DIRECTORY}../third_party/enet
+${CMAKE_SOURCE_DIRECTORY}../third_party/lib)
+add_subdirectory(${CMAKE_SOURCE_DIRECTORY}../third_party/raylib
+${CMAKE_SOURCE_DIRECTORY}../third_party/raylib/lib)
 
 set(W4_SOURCES
     src/main.cpp
     src/protocol.cpp
-    )
+)
 
 set(W4_SERVER_SOURCES
     src/server.cpp
     src/protocol.cpp
-    )
+)
 
 
 include_directories("../third_party/enet/include"
@@ -29,11 +33,9 @@ if(MSVC)
 endif()
 
 add_executable(w4 ${W4_SOURCES})
-target_link_libraries(w4 PUBLIC project_options project_warnings)
 target_link_libraries(w4 PUBLIC raylib enet)
 
 add_executable(w4_server ${W4_SERVER_SOURCES})
-target_link_libraries(w4_server PUBLIC project_options project_warnings)
 target_link_libraries(w4_server PUBLIC enet)
 
 if(MSVC)
