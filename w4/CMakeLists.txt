@@ -19,7 +19,7 @@ set(W4_SERVER_SOURCES
     )
 
 
-include_directories("../3rdParty/enet/include"
+include_directories("../third_party/enet/include"
   inc/
 )
 
