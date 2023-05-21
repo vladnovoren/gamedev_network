@@ -30,15 +30,16 @@ void on_set_controlled_entity(ENetPacket *packet)
 void on_snapshot(ENetPacket *packet)
 {
   uint16_t eid = invalid_entity;
-  float x = 0.f,
-        y = 0.f;
-  deserialize_snapshot(packet, eid, x, y);
+  float x = 0.f;
+  float y = 0.f;
+  float radius = 0.f;
+  deserialize_snapshot(packet, eid, x, y, radius);
   // TODO: Direct adressing, of course!
   for (Entity &e : entities)
     if (e.eid == eid)
     {
-      e.x = x;
-      e.y = y;
+      e.position = {x, y};
+      e.radius = radius;
     }
 }
 
@@ -59,7 +60,7 @@ int main(int argc, const char **argv)
 
   ENetAddress address;
   enet_address_set_host(&address, "127.0.0.1");
-  address.port = 10131;
+  address.port = 34363;
 
   ENetPeer *serverPeer = enet_host_connect(client, &address, 2, 0);
   if (!serverPeer)
@@ -132,25 +133,32 @@ int main(int argc, const char **argv)
         if (e.eid == my_entity)
         {
           // Update
-          e.x += ((left ? -dt : 0.f) + (right ? +dt : 0.f)) * 100.f;
-          e.y += ((up ? -dt : 0.f) + (down ? +dt : 0.f)) * 100.f;
+          e.position.x += ((left ? -dt : 0.f) + (right ? +dt : 0.f)) * 100.f;
+          e.position.y += ((up ? -dt : 0.f) + (down ? +dt : 0.f)) * 100.f;
 
           // Send
-          send_entity_state(serverPeer, my_entity, e.x, e.y);
+          send_entity_state(serverPeer, my_entity, e.position.x, e.position.y);
         }
     }
 
 
     BeginDrawing();
-      ClearBackground(GRAY);
+      ClearBackground(DARKGRAY);
+      BeginBlendMode(BLEND_ADD_COLORS);
       BeginMode2D(camera);
         for (const Entity &e : entities)
         {
-          const Rectangle rect = {e.x, e.y, 10.f, 10.f};
-          DrawRectangleRec(rect, GetColor(e.color));
+          DrawCircle(e.position.x, e.position.y, e.radius, GetColor(e.color));
+          /*
+          if (e.eid == my_entity) {
+            e.position.Print();
+            std::cout << '\n';
+          }
+          */
         }
 
       EndMode2D();
+      EndBlendMode();
     EndDrawing();
   }
 

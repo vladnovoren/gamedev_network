@@ -41,16 +41,18 @@ void send_entity_state(ENetPeer* peer, uint16_t eid, float x, float y) {
   enet_peer_send(peer, 1, packet);
 }
 
-void send_snapshot(ENetPeer* peer, uint16_t eid, float x, float y) {
+void send_snapshot(ENetPeer* peer, uint16_t eid, float x, float y,
+                   float radius) {
   auto packet = enet_packet_create(nullptr, sizeof(MessageType) +
                                             sizeof(uint16_t) +
-                                            2 * sizeof(float),
+                                            2 * sizeof(float) + sizeof(float),
                                             ENET_PACKET_FLAG_UNSEQUENCED);
   IBitStream i_bit_stream(packet);
   i_bit_stream.Write(E_SERVER_TO_CLIENT_SNAPSHOT);
   i_bit_stream.Write(eid);
   i_bit_stream.Write(x);
   i_bit_stream.Write(y);
+  i_bit_stream.Write(radius);
   enet_peer_send(peer, 1, packet);
 }
 
@@ -77,10 +79,20 @@ void deserialize_entity_state(ENetPacket* packet, uint16_t &eid,
 }
 
 void deserialize_snapshot(ENetPacket* packet, uint16_t& eid,
-                          float& x, float& y) {
+                          float& x, float& y, float& radius) {
   OBitStream o_bit_stream(packet);
   o_bit_stream.Read(eid);
   o_bit_stream.Read(x);
   o_bit_stream.Read(y);
+  o_bit_stream.Read(radius);
 }
 
+void LogConnectionEstablished(const ENetAddress& address) {
+  printf("Connection established with: [host = %d, port = %d]\n",
+         address.host, address.port);
+}
+
+void LogDisconnected(const ENetAddress& address) {
+  printf("Disconnected from: [host = %d, port = %d]\n",
+         address.host, address.port);
+}

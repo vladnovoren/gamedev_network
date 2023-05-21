@@ -13,3 +13,4 @@ enum MessageType : uint8_t
 
 
 using byte_t = uint8_t;
+using port_t = uint16_t;
