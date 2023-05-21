@@ -50,6 +50,8 @@ class Game {
 
   void SendPings();
 
+  void SendTime();
+
  private:
   ENetHost* host_;
 

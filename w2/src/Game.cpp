@@ -31,6 +31,7 @@ void Game::InitHost() {
 }
 
 void Game::HandleEvents() {
+  IntervalTimer timer(1000);
   while (true) {
     ENetEvent event;
     while (enet_host_service(host_, &event, 10) > 0) {
@@ -51,7 +52,10 @@ void Game::HandleEvents() {
           break;
       }
     }
-    SendPings();
+    if (timer.IsReset()) {
+      SendPings();
+      SendTime();
+    }
   }
 }
 
@@ -141,7 +145,10 @@ void Game::SendPings() {
   }
 }
 
-
+void Game::SendTime() {
+  std::string msg = "Server time: " + std::to_string(enet_time_get());
+  SendMessageBroadcast(host_, msg, ENET_PACKET_FLAG_RELIABLE);
+}
 
 int main() {
   Game game(2002);
