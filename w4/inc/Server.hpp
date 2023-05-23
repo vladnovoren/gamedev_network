@@ -41,7 +41,7 @@ class Server {
 
  private:
   static constexpr size_t n_ai_entities_ = 10;
-  static constexpr float speed_ = 2000;
+  static constexpr float speed_ = 5000;
   static constexpr float min_radius_ = 10;
   static constexpr float max_add_radius_ = 20;
   static constexpr float width_ = 600;

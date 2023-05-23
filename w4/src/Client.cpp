@@ -142,24 +142,31 @@ int main(int argc, const char **argv)
     }
 
 
-    BeginDrawing();
-      ClearBackground(DARKGRAY);
-      BeginBlendMode(BLEND_ADD_COLORS);
-      BeginMode2D(camera);
-        for (const Entity &e : entities)
-        {
-          DrawCircle(e.position.x, e.position.y, e.radius, GetColor(e.color));
-          /*
-          if (e.eid == my_entity) {
-            e.position.Print();
-            std::cout << '\n';
+    if (serverPeer != nullptr) {
+      BeginDrawing();
+        ClearBackground(DARKGRAY);
+        BeginBlendMode(BLEND_ADD_COLORS);
+        BeginMode2D(camera);
+          for (const Entity &e : entities)
+          {
+            DrawCircle(e.position.x, e.position.y, e.radius,
+                       GetColor(e.color));
+      //      std::cout << "position: ";
+    //        e.position.Print();
+  //          std::cout << '\n';
+            /*
+            if (e.eid == my_entity) {
+              e.position.Print();
+              std::cout << '\n';
+            }
+            */
           }
-          */
-        }
+//          std::cout << '\n';
 
-      EndMode2D();
-      EndBlendMode();
-    EndDrawing();
+        EndMode2D();
+        EndBlendMode();
+      EndDrawing();
+    }
   }
 
   CloseWindow();

@@ -2,6 +2,7 @@
 #include <stdexcept>
 
 Server::Server(port_t port) : server_host_port_(port) {
+  srand(time(NULL));
 }
 
 void Server::Run() {
@@ -57,8 +58,8 @@ void Server::MainLoop() {
           break;
       }
     }
-    MoveAIEntities(dt);
     HandleCollisions();
+    MoveAIEntities(dt);
     SendSnapshots();
   }
 }
@@ -78,14 +79,14 @@ void Server::HandleReceivedPacket(ENetEvent& event) {
 }
 
 void Server::HandleJoinPacket(ENetEvent& event) {
-  SendAllEntities(event.peer);
-
   entities_.emplace_back(
       GetRandomColor(),
       GetRandomPosition(),
       GetRandomRadius(),
       entities_.size()
   );
+
+  SendAllEntities(event.peer);
 
   SendNewEntityToOthers(entities_.back());
   send_set_controlled_entity(event.peer, entities_.back().eid);

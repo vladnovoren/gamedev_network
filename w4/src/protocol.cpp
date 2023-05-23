@@ -46,7 +46,7 @@ void send_snapshot(ENetPeer* peer, uint16_t eid, float x, float y,
   auto packet = enet_packet_create(nullptr, sizeof(MessageType) +
                                             sizeof(uint16_t) +
                                             2 * sizeof(float) + sizeof(float),
-                                            ENET_PACKET_FLAG_UNSEQUENCED);
+                                   ENET_PACKET_FLAG_UNSEQUENCED);
   IBitStream i_bit_stream(packet);
   i_bit_stream.Write(E_SERVER_TO_CLIENT_SNAPSHOT);
   i_bit_stream.Write(eid);
